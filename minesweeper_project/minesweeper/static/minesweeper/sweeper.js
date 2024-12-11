@@ -57,7 +57,7 @@ function handleClick(click){
         firstClick = false;
         const revealedSquares = ensureSafeFirstClick(click);
         placeMines(revealedSquares);
-        calculateAdjacentMines();
+        calculate();
         revealEmptySquares(click);
     }else{
         if(click.getAttribute('data-mine') === 'true'){
@@ -68,7 +68,7 @@ function handleClick(click){
         }
     }
 
-    checkWinCondition();
+    checkWin();
 }
 
 function ensureSafeFirstClick(startSquare){
@@ -78,8 +78,8 @@ function ensureSafeFirstClick(startSquare){
     const col = index % boardSize;
     const safeSquares = new Set();
 
-    for (let r = -1; r <= 1; r++) {
-        for (let c = -1; c <= 1; c++) {
+    for(let r = -1; r <= 1; r++){
+        for(let c = -1; c <= 1; c++){
             const newRow = row + r;
             const newCol = col + c;
 
@@ -97,20 +97,21 @@ function ensureSafeFirstClick(startSquare){
 
 function placeMines(safeSquares){
     const squareArray = Array.from(document.querySelectorAll('.section'));
+    
     let placed = 0;
 
-    while (placed < totalMines){
+    while(placed < totalMines){
         const randomIndex = Math.floor(Math.random() * squareArray.length);
         const square = squareArray[randomIndex];
 
-        if (!safeSquares.has(square) && square.getAttribute('data-mine') === 'false'){
+        if(!safeSquares.has(square) && square.getAttribute('data-mine') === 'false'){
             square.setAttribute('data-mine', 'true');
             placed++;
         }
     }
 }
 
-function calculateAdjacentMines() {
+function calculate(){
     const squareArray = Array.from(document.querySelectorAll('.section'));
 
     squareArray.forEach((square, index) => {
@@ -118,20 +119,15 @@ function calculateAdjacentMines() {
         const col = index % boardSize;
         let adjacent = 0;
 
-        for (let r = -1; r <= 1; r++) {
-            for (let c = -1; c <= 1; c++) {
+        for(let r = -1; r <= 1; r++){
+            for(let c = -1; c <= 1; c++){
                 const newRow = row + r;
                 const newCol = col + c;
 
-                if (
-                    newRow >= 0 &&
-                    newRow < boardSize &&
-                    newCol >= 0 &&
-                    newCol < boardSize
-                ) {
+                if(newRow >= 0 && newRow < boardSize && newCol >= 0 && newCol < boardSize){
                     const neighborIndex = newRow * boardSize + newCol;
                     const neighbor = squareArray[neighborIndex];
-                    if (neighbor.getAttribute('data-mine') === 'true') {
+                    if(neighbor.getAttribute('data-mine') === 'true'){
                         adjacent++;
                     }
                 }
@@ -142,36 +138,37 @@ function calculateAdjacentMines() {
     });
 }
 
-function revealEmptySquares(square) {
+function revealEmptySquares(square){
     const squareArray = Array.from(document.querySelectorAll('.section'));
     const stack = [square];
     const visited = new Set();
 
-    while (stack.length) {
+    while(stack.length){
         const current = stack.pop();
         if (visited.has(current)) continue;
 
         visited.add(current);
 
         const adjacent = parseInt(current.getAttribute('data-adjacent-mines'), 10);
-        current.textContent = adjacent > 0 ? adjacent : '';
+
+        if(adjacent>0){
+            current.textContent = adjacent;
+        }else{
+            current.textContent = '';
+        }
+
         current.style.backgroundColor = 'lightgray';
 
-        if (adjacent === 0) {
+        if(adjacent == 0){
             const index = squareArray.indexOf(current);
             const row = Math.floor(index / boardSize);
             const col = index % boardSize;
 
-            for (let r = -1; r <= 1; r++) {
-                for (let c = -1; c <= 1; c++) {
+            for (let r = -1; r <= 1; r++){
+                for (let c = -1; c <= 1; c++){
                     const newRow = row + r;
                     const newCol = col + c;
-                    if (
-                        newRow >= 0 &&
-                        newRow < boardSize &&
-                        newCol >= 0 &&
-                        newCol < boardSize
-                    ) {
+                    if(newRow >= 0 && newRow < boardSize && newCol >= 0 && newCol < boardSize){
                         const neighborIndex = newRow * boardSize + newCol;
                         const neighbor = squareArray[neighborIndex];
                         if (!visited.has(neighbor) && neighbor.style.backgroundColor !== 'lightgray') {
@@ -183,57 +180,54 @@ function revealEmptySquares(square) {
         }
     }
 
-    checkWinCondition(); // Check win condition after revealing squares
+    checkWin();
 }
 
-function toggleFlag(section) {
-    if (section.style.backgroundColor === 'lightgray') {
+function toggleFlag(section){
+    if(section.style.backgroundColor === 'lightgray'){
         return;
     }
 
-    if (section.style.backgroundColor === 'orange') {
+    if (section.style.backgroundColor === 'orange'){
         section.style.backgroundColor = '';
         remainingFlags++;
-    } else if (remainingFlags > 0) {
+    }else if(remainingFlags > 0){
         section.style.backgroundColor = 'orange';
         remainingFlags--;
     }
     updateFlags();
 }
 
-function updateFlags() {
+function updateFlags(){
     document.querySelector('#flags-count').textContent = remainingFlags;
 }
 
-function checkWinCondition() {
+function checkWin(){
     const squareArray = Array.from(document.querySelectorAll('.section'));
     let revealedSquares = 0;
 
     squareArray.forEach((square) => {
-        if (
-            square.style.backgroundColor === 'lightgray' && // Revealed square
-            square.getAttribute('data-mine') === 'false'
-        ) {
+        if(square.style.backgroundColor === 'lightgray' && square.getAttribute('data-mine') === 'false'){
             revealedSquares++;
         }
     });
 
     const no = boardSize * boardSize - totalMines;
 
-    if (revealedSquares == no) {
+    if(revealedSquares == no){
         showCongratulations();
     }
 }
 
-function showGameOver() {
+function showGameOver(){
     document.getElementById('gameOverScreen').style.display = 'flex';
 }
 
-function showCongratulations() {
+function showCongratulations(){
     document.getElementById('congratulationsScreen').style.display = 'flex';
 }
 
-function resetGame() {
+function resetGame(){
     document.getElementById('gameOverScreen').style.display = 'none';
     document.getElementById('congratulationsScreen').style.display = 'none';
     document.getElementById('welcomeScreen').style.display = 'block';
